@@ -3,10 +3,8 @@
 import re
 
 import scrapy
-from time import sleep
+
 from scrapy import Request
-from requests.packages import urllib3
-import requests
 
 from SpiderStraitstimes.items import Spider_Straitstimes_Item
 
@@ -22,45 +20,122 @@ class Spider_Straitstimes(scrapy.Spider):
 
 
 
+    '''获取新闻父分类下的子分类的url'''
     def parse(self, response):
 
         html=response.text
 
-        urls = re.findall('<li class=".*?leaf"><a href="(.*?)">', html, re.S)
+        part_urls = re.findall('<li class=".*?leaf"><a href="(.*?)">', html, re.S)
 
-        for url in urls:
+        for part_url in part_urls:
 
-            if 'http' in url:
+            if 'http' in part_url:
                 pass
 
-            elif 'class' in url:
+            elif 'class' in part_url:
                 pass
 
             else:
-                print("https://www.straitstimes.com"+url)
 
-                item=Spider_Straitstimes_Item()
+                '''包含翻页操作'''
 
-                item['category_url']="https://www.straitstimes.com"+url
+                for page in (1,50):
+
+                    if page==0:
+
+                        url="https://www.straitstimes.com"+part_url
+
+                    else:
+
+                        url="https://www.straitstimes.com"+part_url+"?page=%s"%page
+
+                    print("我是翻页的url%s"%url)
+
+                    yield Request(url,callback=self.parse_news_url)
 
 
-                print("继续访问")
+    '''获取子分类下的新闻链接'''
+    def parse_news_url(self,response):
 
-                print(item['category_url'])
 
-                response1 = requests.get(item['category_url'])
+        part_news_urls=re.findall('<span class="story-headline">(.*?)</span>',response.text,re.S)
 
-                # 获取网页源码
-                html = response1.text
 
-                # 提取url
-                titles = re.findall('<span class="story-headline">(.*?)</span>' % url, html, re.S)
 
-                for title in titles:
+        for part_news_url in part_news_urls:
 
-                    item['title']=title.strip()
+            news_url="https://www.straitstimes.com/"+re.findall('<a href="/(.*?)"',part_news_url,re.S)[0].strip()
 
-                    yield item
+            print("我要输出新闻链接")
+
+            print(news_url)
+
+            yield Request(news_url,callback=self.parse_news)
+
+
+    '''获取新闻的标题,正文,发布时间,作者'''
+    def parse_news(self,response):
+
+
+        html=response.text
+
+        item=Spider_Straitstimes_Item()
+
+        # 获取标题信息
+        try:
+            item['title'] = re.findall('<title>(.*?)</title>', html, re.S)[0]
+            if item['title'] == '':
+                item['title'] = "no data about title"
+        except Exception as e2:
+            item['title'] = "no data about title,failed to get it"
+        print("标题是:")
+        print(item['title'])
+
+
+
+        # 获取正文信息
+        try:
+            data = re.findall('<p>(.*?)</p>', html, re.S)
+
+            if data == []:
+                item['article'] = 'no data about article'
+
+            else:
+                item['article'] = ''
+                for i in range(1, len(data) - 2):
+                    item['article'] =item['article'] + data[i]
+        except Exception as e1:
+            item['article'] = "no data about article,failed to get it"
+
+        print("正文是:")
+        print(item['article'])
+
+
+
+        # 获取发布时间
+        try:
+            item['pubdate'] = re.findall('"pubdate":"(.*?)",', html, re.S)[0]
+            if  item['pubdate'] == '':
+                item['pubdate'] = 'no data about pubdate'
+        except Exception as e3:
+            item['pubdate'] = "no data about pubdate,failed to get it"
+        print("发布时间是")
+        print( item['pubdate'])
+
+        # 获取作者
+        try:
+            item['author'] = re.findall('"author": "(.*?)",', html, re.S)[0].replace("+", " ")
+            if item['author'] == "":
+                item['author'] = 'no data about author'
+        except Exception as e4:
+            item['author'] = "no data about author,failed to get it"
+
+        print("作者是")
+        print(item['author'])
+
+        yield item
+
+
 
 
 
