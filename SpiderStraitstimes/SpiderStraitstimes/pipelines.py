@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-
-
 class SpiderstraitstimesPipeline(object):
     def process_item(self, item, spider):
-        with open("data.text", 'a') as fp:
-            fp.write(item['category_url']  +item['title'] + '\n')
+        with open("news.text", 'a+',encoding='utf-8') as fp:
+            fp.write(item['link'] + '\n')
+            fp.write(item['title']  + '\n')
+            fp.write(item['article'] + '\n')
+            fp.write(item['pubdate'] + '\n')
+            fp.write(item['author'] + '\n'+ '\n'+ '\n')
