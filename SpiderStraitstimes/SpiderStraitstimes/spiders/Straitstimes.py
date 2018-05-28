@@ -129,6 +129,7 @@ class Spider_Straitstimes(scrapy.Spider):
                 #存在则返回具体的link
                 item['link']=re.findall('<link rel="canonical" href="(.*?)"',html,re.S)[0]
 
+
         #若发生异常时,同样将新闻链接处理为no link,并打印日志
         except Exception as link_error:
 
@@ -196,6 +197,7 @@ class Spider_Straitstimes(scrapy.Spider):
                 f.write(time.strftime("%Y-%m-%d %H:%M:%S")+"新闻正文获取异常:%s"%article_error+"\n")
 
 
+
         # 获取发布时间
         try:
             #判断当前是否可查找发布时间
@@ -218,6 +220,7 @@ class Spider_Straitstimes(scrapy.Spider):
                 f.write(time.strftime("%Y-%m-%d %H:%M:%S")+"新闻发布时间获取异常:%s"%pubdate_error+"\n")
 
 
+
         # 获取作者
         try:
             #判断是否可查找author
@@ -238,6 +241,59 @@ class Spider_Straitstimes(scrapy.Spider):
             with open('newsinfo.log','a+') as f:
 
                 f.write(time.strftime("%Y-%m-%d %H:%M:%S")+"新闻发布者获取异常:%s"%author_error+"\n")
+
+
+
+        #判断标题是否涉华
+        try:
+
+            if 'china' or 'China' or 'chinese' or 'Chinese' in re.findall('<title>(.*?)</title>', html, re.S)[0] == '':
+                # 此时默认标题涉华
+                item['title_related_to_China'] = 1
+            else:
+                # 此时默认标题不涉华
+                item['title_related_to_China'] = 0
+
+        # 若发生异常处理
+        except Exception as title_related_to_China_error:
+
+            item['title_related_to_China'] = 0
+
+            with open('newsinfo.log', 'a+') as f:
+
+                f.write(time.strftime("%Y-%m-%d %H:%M:%S") + "关系获取异常:%s" % title_related_to_China_error + "\n")
+
+
+
+        # 判断内容是否涉华
+        try:
+
+            # 正文被p标签所包围,应先提取正文部分的所有p标签
+            data = re.findall('<p>(.*?)</p>', html, re.S)
+
+            # 存在则遍历提取
+            article = ''
+
+            for i in range(1, len(data) - 2):
+                article = article + data[i].strip()
+
+
+            if 'china' or 'China' or 'chinese' or 'Chinese' in article == '':
+                # 此时默认内容涉华
+                item['article_related_to_China'] = 1
+
+            else:
+                # 此时默认内容不涉华
+                item['article_related_to_China'] = 0
+
+        # 若发生异常处理
+        except Exception as article_related_to_China_error:
+
+            item['article_related_to_China'] = 0
+
+            with open('newsinfo.log', 'a+') as f:
+
+                f.write(time.strftime("%Y-%m-%d %H:%M:%S") + "关系获取异常:%s" % article_related_to_China_error + "\n")
 
         #返回item,发送给管道进行数据处理
         yield item

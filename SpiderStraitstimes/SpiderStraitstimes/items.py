@@ -18,3 +18,9 @@ class Spider_Straitstimes_Item(scrapy.Item):
 
     #新闻链接
     link=scrapy.Field()
+
+    #标题是否涉华
+    title_related_to_China=scrapy.Field()
+
+    # 内容是否涉华
+    article_related_to_China = scrapy.Field()

@@ -28,8 +28,9 @@ class DBPipeline(object):
     def process_item(self, item, spider):
         try:
 
-            self.cursor.execute("insert into straitstimes_news (news_title,news_article,news_pubdate,news_author,news_link) "
-                                "values(%s,%s,%s,%s,%s)",[ item['title'],item['article'],item['pubdate'],item['author'],item['link'] ])
+            self.cursor.execute("insert into straitstimes_news (news_title,news_article,news_pubdate,news_author,news_link,title_related_to_China,article_related_to_China) "
+                                "values(%s,%s,%s,%s,%s,%s,%s)",
+                                [ item['title'],item['article'],item['pubdate'],item['author'],item['link'],item['title_related_to_China'],item['article_related_to_China'] ])
 
             # 提交sql语句
             self.connect.commit()
