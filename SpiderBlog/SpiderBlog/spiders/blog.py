@@ -8,74 +8,75 @@ from SpiderBlog.items import SpiderblogItem
 class BlogSpider(scrapy.Spider):
     name = 'blog'
     #allowed_domains = ['cnblogs.com']
-    start_urls = ['http://www.cnblogs.com/']
-
-    def parse(self, response):
-        html=response.text
-
-        data=re.findall('<ul id="cate_item">(.*?)</ul>',html,re.S)[0]
-
-        urls=re.findall('<a href="(.*?)"',data,re.S)
-
-        names=re.findall('/">(.*?)</a>',data,re.S)
-
-        for i in range(len(urls)):
-
-            #分类名称
-            category_url=self.start_urls[0]+urls[i]
-
-            #分类URL
-            category_name=names[i]
-
-            print(category_url)
-
-            yield Request(url=category_url,callback=self.parse_category)
+    start_urls = ['https://q.cnblogs.com/tag/list']
 
 
-    def parse_category(self,response):
+
+    def start_requests(self):
 
 
-        html=response.text
+        for page in range(1,101):
 
-        article_links=re.findall('<a class="titlelnk" href="(.*?)"',html,re.S)
+            url='https://q.cnblogs.com/tag/list'
 
-        article_titles=re.findall('<a class="titlelnk".*?">(.*?)<',html,re.S)
+            yield Request(url=url,callback=self.parse_tag)
 
-        article_summarys = re.findall('<p class="post_item_summary">.*?</a>(.*?)</p>', html, re.S)
 
-        article_authors=re.findall('class="lightblue">(.*?)<',html,re.S)
+    def parse_tag(self, response):
 
-        article_pubdates=re.findall('class="lightblue">.*?发布于(.*?)<span',html,re.S)
+        category_links=re.findall('<td.*?<li><a href="(.*?)"',response.text,re.S)
 
-        article_read_nums=re.findall('l" class="gray">(.*?)<',html,re.S)
 
-        article_comment_nums=re.findall('<span class="article_comment">.*?class="gray">(.*?)</a>',html,re.S)
+        for category_link in category_links:
 
+            for page in range(1,101):
+
+                yield Request(url="https://q.cnblogs.com"+category_link+"?page=%s"%page,callback=self.parse_category_question_list)
+
+
+    def parse_category_question_list(self,response):
 
         item=SpiderblogItem()
 
-        for article_link in article_links:
-            item['link']=article_link
+        question_titles=re.findall('<div id="news_item.*?target="_blank".*?>(.*?)<',response.text,re.S)
 
-        for article_title in article_titles:
-            item['title'] = article_title
+        question_links=re.findall('<h2 class="news_entry">.*?href="(.*?)"',response.text,re.S)
 
-        # for article_summary in article_summarys:
-        #     print(article_summary)
+        question_pubAuthor=re.findall('news_contributor">(.*?)<',response.text,re.S)
 
-        for article_author in article_authors:
-            item['author'] = article_author
+        question_pubdate=re.findall('news_contributor">.*?<span title="(.*?)"',response.text,re.S)
 
-        for article_pubdate in article_pubdates:
-            item['pubdate'] = article_pubdate
+        question_visitorsNum=re.findall('news_contributor.*?<br />(.*?)<span',response.text,re.S)
 
-        for article_read_num in article_read_nums:
-            item['read_num'] =article_read_num.strip(")").replace('阅读(',"").strip()
-        #
-        for article_comment_num in article_comment_nums:
-            item['comment_num']=article_comment_num.strip(")").replace('评论(',"").strip()
+        question_tags=re.findall('question-tag-div">(.*?)</div>',response.text,re.S)
+
+        question_summarys=re.findall('news_summary">(.*?)</div>',response.text,re.S)
+
+        question_answeredNums=re.findall('diggnum .*?answered">(.*?)<',response.text,re.S)
+
+        question_values=re.findall('<h2 class="news_entry">(.*?)</h2>',response.text,re.S)
+
+
+
+        for i in range(len(question_titles)):
+
+            item['question_title']=question_titles[i]
+            item['question_link']="https://q.cnblogs.com"+question_links[i]
+            item['question_pubAuthor']=question_pubAuthor[i]
+            item['question_pubdate']=question_pubdate[i]
+            item['question_visitorsNum']=question_visitorsNum[i].strip().strip("浏览(").strip(")")
+            item['question_tag']=str(re.findall('<a style=".*?>(.*?)<',question_tags[i].strip(),re.S)).strip("[").strip("]").replace("'","")
+            item['question_summary']=question_summarys[i].strip()
+            item['question_answeredNum']=question_answeredNums[i]
+
+            data=re.findall('<span class="gold">(.*?)<',question_values[i],re.S)
+            if len(data)==0:
+                item['question_value']="0"
+            else:
+                item['question_value']=data[0]
 
             yield item
+
 
 
 

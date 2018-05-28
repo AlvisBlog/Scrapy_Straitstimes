@@ -9,11 +9,12 @@ import scrapy
 
 
 class SpiderblogItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    link=scrapy.Field()
-    title=scrapy.Field()
-    author=scrapy.Field()
-    pubdate=scrapy.Field()
-    read_num =scrapy.Field()
-    comment_num=scrapy.Field()
+    question_title=scrapy.Field()
+    question_link=scrapy.Field()
+    question_pubAuthor=scrapy.Field()
+    question_pubdate=scrapy.Field()
+    question_visitorsNum=scrapy.Field()
+    question_tag=scrapy.Field()
+    question_summary=scrapy.Field()
+    question_answeredNum=scrapy.Field()
+    question_value=scrapy.Field()

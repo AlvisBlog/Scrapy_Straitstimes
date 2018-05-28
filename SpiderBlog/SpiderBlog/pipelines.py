@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-# Define your item pipelines here
-#
-# Don't forget to add your pipeline to the ITEM_PIPELINES setting
-# See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
+
 
 
 class SpiderblogPipeline(object):
     def process_item(self, item, spider):
+        with open("data.text",'a+') as fp:
+            fp.write("文章链接为:"+item['link'] + '\n')
+            fp.write("文章标题为:"+item['title'] + '\n')
+            fp.write("文章作者为:"+item['author'] + '\n' )
+            fp.write("文章发布时间为:"+item['pubdate'].strip() + '\n')
+            fp.write("文章阅读量为:"+item['read_num'].strip() + '\n')
+            fp.write("文章评论数为:"+item['comment_num'].strip() + '\n'+"\n")
         return item

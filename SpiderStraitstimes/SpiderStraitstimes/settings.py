@@ -65,28 +65,37 @@ DOWNLOADER_MIDDLEWARES = {
    'SpiderStraitstimes.middlewares.SpiderstraitstimesDownloaderMiddleware': 543,
 }
 
-
+# 启用或禁用扩展程序
 EXTENSIONS = {
    'scrapy.extensions.telnet.TelnetConsole': None,
 }
 
 
+#启用管道
 ITEM_PIPELINES = {
    'SpiderStraitstimes.pipelines.SpiderstraitstimesPipeline': 300,
     'SpiderStraitstimes.dbpipelines.DBPipeline':100
 }
 
 
+#启用和配置AutoThrottle扩展
 AUTOTHROTTLE_ENABLED = True
 
+#初始下载延迟
 AUTOTHROTTLE_START_DELAY = 5
 
+#在高延迟的情况下设置的最大下载延迟
 AUTOTHROTTLE_MAX_DELAY = 60
 
+#Scrapy请求的平均数量应该并行发送每个远程服务器
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
+#启用显示所收到的每个响应的调节统计信息：
 AUTOTHROTTLE_DEBUG = False
 
+
+
+#启用和配置HTTP缓存
 HTTPCACHE_ENABLED = True
 
 HTTPCACHE_EXPIRATION_SECS = 0
