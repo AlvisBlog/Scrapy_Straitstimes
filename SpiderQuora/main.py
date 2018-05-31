@@ -4,7 +4,5 @@
 from scrapy import cmdline
 
 
-def run():
-    cmdline.execute('scrapy crawl quora'.split())
+cmdline.execute('scrapy crawl quora'.split())
 
-run()
